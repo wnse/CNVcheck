@@ -18,7 +18,7 @@ from bokeh.io import output_notebook, output_file
 from bokeh.layouts import layout, column, row
 from bokeh.plotting import figure, show, save
 from bokeh.models import ColumnDataSource, Range1d
-from bokeh.models import CustomJS, MultiChoice, LabelSet, Div, Spinner
+from bokeh.models import CustomJS, MultiChoice, LabelSet, Div, Spinner, Button
 from bokeh.models import PanTool, BoxZoomTool, BoxSelectTool, ResetTool, HoverTool
 from bokeh.resources import INLINE
 
@@ -64,7 +64,7 @@ def get_plot(df, sampleName):
         ("band", "@band")
     ]
 
-    div = Div(text='Chr infomation')
+    div = Div(text='Chr infomation', style={'font-size':'large','ont-weight': 'bold'})
     p = figure(x_range=Range1d(0, df['index'].max()), 
                y_range=Range1d(0,5), 
                tooltips=TOOLTIPS,
@@ -74,7 +74,9 @@ def get_plot(df, sampleName):
                         BoxSelectTool(dimensions='width'), 
                         ResetTool(), HoverTool()
                        ],
-               width=1200, height=400
+               aspect_ratio = 3,
+               sizing_mode='stretch_width'
+               # width=1200, height=400
               )
 
     list_pc = {}
@@ -114,7 +116,7 @@ def get_plot(df, sampleName):
     source = ColumnDataSource(df.drop_duplicates(subset='chr', keep='first'))
     labels = LabelSet(x='index', y=4, text='chr', x_offset=5, y_offset=10, source=source)#render_mode='canvas')
     p.add_layout(labels)
-    spinner = Spinner(title="Circle size",low=0.5,high=10,step=0.5,value=3,width=200,)
+    spinner = Spinner(title="Circle size",low=0.5,high=10,step=0.5,value=3,)#width=200,)
     spinner.js_on_change("value", CustomJS(args=dict(lpc=list_pc), 
                                            code="""
                                            for(var key in lpc){
@@ -126,7 +128,7 @@ def get_plot(df, sampleName):
 
 
     OPTIONS = list(df['chr'].unique())
-    multi_chr = MultiChoice(options=OPTIONS, width=p.width)
+    multi_chr = MultiChoice(options=OPTIONS)# width=p.width)
     multi_chr.js_on_change('value', CustomJS(args=dict(lpc=list_pc, plot=p, div=div), 
                                              code="""
                                              var min_idx = plot.x_range.end
@@ -167,7 +169,22 @@ def get_plot(df, sampleName):
                                              """
                                             )
                           )
-    p_out = column(row(spinner, div), multi_chr, p)
+    
+    all_present = Button(label='全部显示')
+    all_absent = Button(label='全部清除')
+    all_absent.js_on_click(CustomJS(args=dict(multi_chr=multi_chr),
+                                    code="""
+                                    multi_chr.value = []
+                                    """
+                                   )
+                          )
+    all_present.js_on_click(CustomJS(args=dict(multi_chr=multi_chr, s=source),
+                                    code="""
+                                    multi_chr.value = s.data['chr']
+                                    """
+                                   )
+                          )
+    p_out = column(row(spinner, all_absent, all_present), multi_chr, div, p)
     return p_out
 # show()
 
