@@ -246,4 +246,4 @@ if __name__ == '__main__':
             save(p, title=sn)
     else:
         output_file(outfile)
-        save(column(total_p), title='cnv_check_js', resources=INLINE)
+        save(column(total_p), title='cnv_check_js',)# resources=INLINE)
