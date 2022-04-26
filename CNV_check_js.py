@@ -63,7 +63,7 @@ def get_plot(df, sampleName):
         ("Position", "@Position"),
         ("band", "@band")
     ]
-
+    divSam = Div(text=sampleName, style={'font-size':'xx-large','ont-weight': 'bold'})
     div = Div(text='Chr infomation', style={'font-size':'large','ont-weight': 'bold'})
     p = figure(x_range=Range1d(0, df['index'].max()), 
                y_range=Range1d(0,5), 
@@ -184,7 +184,7 @@ def get_plot(df, sampleName):
                                     """
                                    )
                           )
-    p_out = column(row(spinner, all_absent, all_present), multi_chr, div, p)
+    p_out = column(divSam, row(spinner, all_absent, all_present), multi_chr, div, p)
     return p_out
 # show()
 
