@@ -50,7 +50,7 @@ def get_band(df_cnv, band_file):
 
 # %% tags=[]
 # output_notebook()
-def get_plot(df, sampleName):
+def get_plot(df, sampleName, ymax=5):
     for i in ['index', 'chr', 'Position', 'copyNum', 'band', 'color']:
         if i not in df.columns:
             loggiing.info(f'{sampleName} has not {i} column')
@@ -66,7 +66,7 @@ def get_plot(df, sampleName):
     divSam = Div(text=sampleName, style={'font-size':'xx-large','ont-weight': 'bold'})
     div = Div(text='Chr infomation', style={'font-size':'large','ont-weight': 'bold'})
     p = figure(x_range=Range1d(0, df['index'].max()), 
-               y_range=Range1d(0,5), 
+               y_range=Range1d(0,ymax),
                tooltips=TOOLTIPS,
                title = sampleName,
                tools = [PanTool(dimensions='width'), 
@@ -114,7 +114,7 @@ def get_plot(df, sampleName):
         )
 
     source = ColumnDataSource(df.drop_duplicates(subset='chr', keep='first'))
-    labels = LabelSet(x='index', y=4, text='chr', x_offset=5, y_offset=10, source=source)#render_mode='canvas')
+    labels = LabelSet(x='index', y=ymax-1, text='chr', x_offset=5, y_offset=10, source=source)#render_mode='canvas')
     p.add_layout(labels)
     spinner = Spinner(title="Circle size",low=0.5,high=10,step=0.5,value=3,)#width=200,)
     spinner.js_on_change("value", CustomJS(args=dict(lpc=list_pc), 
@@ -207,6 +207,7 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--refband', default=os.path.join(bin_dir, 'hg19_band.txt'), help='human chromosome band [chr, start, end, band] sep by tab')
     parser.add_argument('-o', '--outputfile', default='cnv_check_js.html', help='output html file')
     parser.add_argument('-d', '--outputdir', default=None, help='output html dir for split')
+    parser.add_argument('-y', '--ymax', default=5, type=int, help='y max')
     args = parser.parse_args()
     
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',datefmt='%Y-%m-%d %H:%M:%S')
@@ -219,7 +220,7 @@ if __name__ == '__main__':
     
     if args.inputdir:
         inputdir = args.inputdir
-        cnv_files = [os.path.join(inputdir, i) for i in os.listdir(inputdir) if os.path.splitext(i)[1]=='.csv']
+        cnv_files = sorted([os.path.join(inputdir, i) for i in os.listdir(inputdir) if os.path.splitext(i)[1]=='.csv'])
     elif args.input:
         cnv_files = args.input
     else:
@@ -236,7 +237,7 @@ if __name__ == '__main__':
     for cnv_file in cnv_files:
         df_cnv = get_data(cnv_file, band_file)
         sn = os.path.split(cnv_file)[1]
-        p = get_plot(df_cnv, sampleName=sn)
+        p = get_plot(df_cnv, sampleName=sn, ymax=args.ymax)
         total_p.append(p)
         sampleNames.append(sn)
     
