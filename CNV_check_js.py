@@ -112,10 +112,15 @@ def get_plot(df, sampleName, ymax=5):
                                                           """
                                                          )
         )
-
+    
     source = ColumnDataSource(df.drop_duplicates(subset='chr', keep='first'))
+    df_tmp = df.groupby(['chr'])['copyNum'].mean().round(2).astype(str).reset_index()
+    df_tmp['index'] = df_tmp['chr'].map(df.drop_duplicates(subset='chr', keep='first').set_index('chr')['index'].to_dict())
+    source1 = ColumnDataSource(df_tmp)
     labels = LabelSet(x='index', y=ymax-1, text='chr', x_offset=5, y_offset=10, source=source)#render_mode='canvas')
+    labels1 = LabelSet(x='index', y=ymax-1.2, text='copyNum', x_offset=5, y_offset=10, source=source1)#render_mode='canvas')
     p.add_layout(labels)
+    p.add_layout(labels1)
     spinner = Spinner(title="Circle size",low=0.5,high=10,step=0.5,value=3,)#width=200,)
     spinner.js_on_change("value", CustomJS(args=dict(lpc=list_pc), 
                                            code="""
